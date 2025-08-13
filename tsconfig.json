@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "ES6",                   // Good modern target
+    "module": "ESNext",                   // Let TS output native ESM
+    "moduleResolution": "Node",           // Classic Node resolution
+    "outDir": "./dist",                   // Compiled output folder
+    "rootDir": "./src",                   // Keep source clean
+    "esModuleInterop": true,              // Allow default imports for CJS modules
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,                       // Strict type checking
+    "skipLibCheck": true
+  },
+  "include": ["src"],                     // Only compile source files
+  "exclude": ["node_modules", "dist"]
+}

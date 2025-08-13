@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3x3 Grid Layout</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            font-family: Arial, sans-serif;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-rows: 1fr 1fr 1fr;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        .cell {
+            border-right: 1px solid #ccc;
+            border-bottom: 1px solid #ccc;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .cell:nth-child(3n) {
+            border-right: none;
+        }
+
+        .cell:nth-child(n+7) {
+            border-bottom: none;
+        }
+
+        .cell-label {
+            font-weight: bold;
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .cell-content {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="grid">
+        <!-- Row 1 -->
+        <div class="cell">
+            <div class="cell-label">1-1</div>
+            <div class="cell-content">
+                <!-- Your content here -->
+                 <h3>Login Form</h3>
+                 <p>Rate Limit: 0 out of 5</p>
+            </div>
+        </div>
+        
+        <div class="cell">
+            <div class="cell-label">1-2</div>
+            <div class="cell-content">
+                <h3>General Rate Limit</h3>
+
+            </div>
+        </div>
+        
+        <div class="cell">
+            <div class="cell-label">1-3</div>
+            <div class="cell-content">
+                <!-- Your content here -->
+                <h3>You are AFK for: 1 min and 32 secs</h3>
+                <h5>Warning auto logout if AFK for 5mins</h5>
+            </div>
+        </div>
+        
+        <!-- Row 2 -->
+        <div class="cell">
+            <div class="cell-label">2-1</div>
+            <div class="cell-content">
+                <!-- Your content here -->
+                <h3>NGINX is delagating this task to server/port</h3>
+                <!-- Servers can be 1, 2, 3 -->
+                <p>Number of servers: </p>
+            </div>
+        </div>
+        
+        <div class="cell">
+            <div class="cell-label">2-2</div>
+            <div class="cell-content">
+                <!-- Your content here -->
+                <h3>Create Egg</h3>
+                <!-- Can be none or email type or pin -->
+                <p>Type of MFA: </p>
+                <!-- Chef, Assitant, Customer -->
+                <p>Role: </p>
+                <p>Cooking Method: </p>
+            </div>
+        </div>
+        
+        <div class="cell">
+            <div class="cell-label">2-3</div>
+            <div class="cell-content">
+                <!-- Your content here -->
+                <!-- Stress test, spike test, Soak Testing -->
+                <h3>Tryout some testing!</h3>
+
+            </div>
+        </div>
+        
+        <!-- Row 3 -->
+        <div class="cell">
+            <div class="cell-label">3-1</div>
+            <div class="cell-content">
+                <!-- Your content here -->
+                <h3>Blacklisted Refresh Tokens</h3>
+                <!-- Token can be valid, malformed and expired -->
+                <h5>Refresh Token</h5>
+                <p>Pick token: </p>
+
+                <h5>Access Token</h5>
+                <p>Pick token: </p>
+            </div>
+        </div>
+        
+        <div class="cell">
+            <div class="cell-label">3-2</div>
+            <div class="cell-content">
+                <!-- Your content here -->
+                <h3>Session Cookie Validation</h3>
+            </div>
+        </div>
+        
+        <div class="cell">
+            <div class="cell-label">3-3</div>
+            <div class="cell-content">
+                <!-- Your content here -->
+                <h3>Central System Feedback</h3>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
