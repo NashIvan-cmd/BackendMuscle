@@ -5,6 +5,7 @@ import auth from "./routes/auth.routes"
 import * as dotenv from "dotenv";
 import { connectDB } from "./configs/mongoose.config";
 import { errorHandler } from "./middleware/error.middleware";
+import os from "os"
 
 dotenv.config();
 // Recreate __filename and __dirname
@@ -27,7 +28,6 @@ const startServers = async () => {
       const app = express();
       app.use(express.json());
       app.use(express.urlencoded({ extended: true }));
-      app.use(errorHandler);
       
       const currentPort = port;
       
@@ -44,9 +44,16 @@ const startServers = async () => {
         res.render('index');
       });
 
+      app.use('/api', (req, res, next) => { 
+        res.locals.portNumber = port // Let the portNumber variable to live until the last response
+        next(); // Calls the next middleware
+      })
+      
       app.use('/api', auth);
+      app.use(errorHandler);
 
-      app.listen(currentPort, () => {
+      // 0.0.0.0 Makes it listen to all ports not just localhost
+      app.listen(currentPort, '0.0.0.0', () => {
         console.log(`🚀 Server ${i + 1} listening on port ${currentPort}`);
       });
       

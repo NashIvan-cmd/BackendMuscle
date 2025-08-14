@@ -22,6 +22,7 @@ export const responseHelper = <T extends object>(
     // Standard format
     const responseBody = {
         statusCode,
+        portNumber: res.locals.portNumber,
         // Use spread operator to destructure from metadata
         ...(options?.metadata || {}),
         [key]: payload,

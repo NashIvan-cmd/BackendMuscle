@@ -1,0 +1,27 @@
+services:
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80" # Equal to localhost:80 or just localhost
+    volumes: # Define the location of nginx configurations
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend
+
+  backend:
+    build: . # Build the directory given
+    ports: # Define your backend ports
+      - "3000:3000"  # First 3000 Host Port: Second 3000 Container Port
+      - "3001:3001"  
+      - "3002:3002"
+      # We should also expose our mongoDB connection to let the docker connect
+    volumes:
+      # - .:/app # Map entire project to /app in container
+      - ./src:/app/src # Source code gets hot reloading
+      - ./package.json:/app/package.json
+      - ./nodemon.json:/app/nodemon.json
+      - /app/node_modules  # Exlucde node_modules (use container's version)
+      - /app/dist
+    environment:
+      - NODE_ENV=development
+      - MONGO_URI=${MONGO_URI} # Automatically read from .env file -> Same Directory

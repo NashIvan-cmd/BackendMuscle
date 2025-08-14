@@ -3,6 +3,14 @@ import { Request, Response, NextFunction } from 'express';
 // Global Error Handler Middleware
 export  const errorHandler = (err: Error, req: Request, res: Response, next: NextFunction) => {
 
+    // See the kind of errror we are getting
+    console.log("Error instanceof NotFoundError:", err instanceof NotFoundError);
+    console.log("Error prototype:", Object.getPrototypeOf(err));
+    console.log("Error.constructor.name:", err.constructor.name);
+    console.log("Error keys:", Object.keys(err));
+    console.log("err.statusCode:", (err as any).statusCode);
+
+
     // Hanldes errors
     if (err instanceof CustomError) {
         const { statusCode, errors, logging } = err;
@@ -84,6 +92,9 @@ export class NotFoundError extends CustomError {
         this._code = code || this._statusCode;
         this._logging = logging || false;
         this._context = context || {};
+
+        // Only because we are extending a built-in class
+        Object.setPrototypeOf(this, NotFoundError.prototype);
     }
 
     get errors() {

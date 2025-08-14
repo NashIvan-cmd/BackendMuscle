@@ -9,7 +9,7 @@ let loginExecutioner: ExpressHandle | null = null;
 
 
 const registerFn = async (req: Request, res: Response, next: NextFunction) => {
-    const { username, password, role } = req.body();
+    const { username, password, role } = req.body;
     try {
     
         if (!username || !password) {
@@ -35,8 +35,9 @@ export const setCreateAccProcessor = () => {
     registerExecutioner = registerFn;
 }
 
-const loginFn = async (req: Request, res: Response, next: NextFunction) => {
-    const { username, password } = req.body();
+export const loginFn = async (req: Request, res: Response, next: NextFunction) => {
+    console.log("New Login Request");
+    const { username, password } = req.body;
     try {
         if (!username) { 
             throw new BadRequestError({ code: 400, message: "Missing username" })
@@ -50,7 +51,7 @@ const loginFn = async (req: Request, res: Response, next: NextFunction) => {
         console.log("User creds: ", user);
 
         if (!user) {
-            throw new NotFoundError({ message: "Invalid Username" })
+            throw new NotFoundError({ code: 404, message: "Invalid Username" })
         }
 
         const checkPassword = user.password === password ? true : false;
