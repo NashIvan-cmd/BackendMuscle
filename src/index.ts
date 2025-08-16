@@ -2,10 +2,12 @@ import express from "express";
 import path from "path";
 import { fileURLToPath } from 'url';
 import auth from "./routes/auth.routes"
+import egg from "./routes/egg.routes"
 import * as dotenv from "dotenv";
 import { connectDB } from "./configs/mongoose.config";
 import { errorHandler } from "./middleware/error.middleware";
 import os from "os"
+import { connectRedis } from "./configs/redis.connect";
 
 dotenv.config();
 // Recreate __filename and __dirname
@@ -19,6 +21,8 @@ const startServers = async () => {
   try {
     // Single database connection for all servers
     await connectDB();
+    // Single redis connection for all servers
+    await connectRedis();
     console.log('✅ Database connected - ready to start servers');
 
     let port = 3000;
@@ -50,6 +54,7 @@ const startServers = async () => {
       })
       
       app.use('/api', auth);
+      app.use('/api', egg);
       app.use(errorHandler);
 
       // 0.0.0.0 Makes it listen to all ports not just localhost

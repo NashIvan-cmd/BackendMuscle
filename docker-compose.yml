@@ -3,13 +3,44 @@ services:
     image: nginx:latest
     ports:
       - "80:80" # Equal to localhost:80 or just localhost
-    volumes: # Define the location of nginx configurations
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    volumes: 
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro # Define the location of nginx configurations
     depends_on:
-      - backend
+      backend: 
+        condition: service_started # Wait for backend to start
+    restart: unless-stopped
+    networks:
+      - app-network # Connect to the same network as backend and redis
+
+  redis:
+    image: redis:7-alpine # Specific version and lighweight
+    container_name: redis-server
+    restart: unless-stopped
+    ports:
+      - "6379:6379" # Redis default port
+    volumes: 
+      - redis_data:/data # Persist data storage
+      - ./redis/redis.conf:/etc/redis/redis.conf # Custom configuration dir
+    # Custom command to start Redis with our configuration file
+    command: redis-server /etc/redis/redis.conf
+    environment:
+      # Set Redis password from .env file, fallback to default if not set
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-your_secure_password}
+    # Docker networks allow containers to communicate with each other
+    # Instead of localhost, containers use service names (e.g., 'redis', 'backend')
+    networks:
+      - app-network
+    # Health checks monitor if the service is running properly
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]  # Command to test if Redis is responding
+      interval: 30s    # Check every 30 seconds
+      timeout: 10s     # Wait max 10 seconds for response
+      retries: 3       # Try 3 times before marking as unhealthy
 
   backend:
     build: . # Build the directory given
+    env_file:
+      - .env # Load environment variables from .env file
     ports: # Define your backend ports
       - "3000:3000"  # First 3000 Host Port: Second 3000 Container Port
       - "3001:3001"  
@@ -25,3 +56,24 @@ services:
     environment:
       - NODE_ENV=development
       - MONGO_URI=${MONGO_URI} # Automatically read from .env file -> Same Directory
+      # Redis connection details for backend
+      - REDIS_HOST=redis  # Use service name, not localhost
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    # Make sure backend waits for Redis to be healthy before starting
+    depends_on:
+      redis:
+        condition: service_healthy
+    # Connect to the same network as Redis
+    networks:
+      - app-network
+
+
+# Try if this persist error
+volumes:
+  redis_data:
+    driver: local
+
+networks:
+  app-network:
+    driver: bridge
