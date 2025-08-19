@@ -75,7 +75,7 @@ export const loginFn = async (req: Request, res: Response, next: NextFunction) =
         const refreshT = genRefreshToken(user._id.toString());
 
         // Saves token into Redis
-        await saveToken(user.id, refreshT);
+        await saveToken(user._id.toString(), refreshT);
         
         // Stateless approach
         // res.cookie != response it just sets a cookie
