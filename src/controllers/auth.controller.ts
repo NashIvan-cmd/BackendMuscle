@@ -2,7 +2,8 @@ import { Response, NextFunction, Request } from "express";
 import { ExpressHandle } from "../utils/fnType.utils";
 import { User } from "../models/user.model";
 import { responseHelper } from "../helper/response.helper";
-import { BadRequestError, NotFoundError } from "../middleware/error.middleware";
+import { BadRequestError, NotFoundError, UnauthorizedError } from "../middleware/error.middleware";
+import { genAccessToken, genRefreshToken, saveToken } from "../middleware/auth.middleware";
 
 let registerExecutioner: ExpressHandle | null = null;
 let loginExecutioner: ExpressHandle | null = null;
@@ -54,19 +55,33 @@ export const loginFn = async (req: Request, res: Response, next: NextFunction) =
             throw new NotFoundError({ code: 404, message: "Invalid Username" })
         }
 
-        const checkPassword = user.password === password ? true : false;
-        
+        // res.send(user);
+
+        const checkPassword = user.password == password ? true : false;
+        // console.log("User pass: ", user.password);
+
+        console.log({ checkPassword });
         if(!checkPassword) {
             // This should be validation error;
-            throw new Error("Invalid Password");
+            throw new UnauthorizedError({ message: "Wrong password" });
         }
 
-        const payload = {
-            username: user.username
-        }
+        if (!user._id || !user.role) throw new NotFoundError({ code: 404, message: "Missing Id or Role" })
         
-        return responseHelper(res, 200, payload);
 
+        const accessToken = genAccessToken(user._id.toString(), user.role);
+        // console.log({ accessToken });
+        
+        const refreshT = genRefreshToken(user._id.toString());
+
+        // Saves token into Redis
+        await saveToken(user.id, refreshT);
+        
+        // Stateless approach
+        // res.cookie != response it just sets a cookie
+        res.cookie("authorization", accessToken, { httpOnly: true });
+
+        res.send("Login Success");
     } catch (error) {
         next(error);
     }
@@ -74,5 +89,9 @@ export const loginFn = async (req: Request, res: Response, next: NextFunction) =
 
 export const setLoginProcessor = () => {
     loginExecutioner = loginFn;
+}
+
+export const logOut = async (req: Request, res: Response, next: NextFunction) => {
+    
 }
 
