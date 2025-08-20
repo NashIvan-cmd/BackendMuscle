@@ -1,12 +1,12 @@
 import mongoose from "mongoose";
 import { UserSchema } from '../models/user.model'
-import { connectDB, closeDB } from "../configs/mongoose.config";
+import { localConnectDB, closeDB } from "../configs/mongoose.config";
 
 const User = mongoose.model('User', UserSchema);
 
 async function userSeed () {
     try {
-        await connectDB();
+        await localConnectDB();
 
         const user = new User({
             username: "Blaice Chan",
