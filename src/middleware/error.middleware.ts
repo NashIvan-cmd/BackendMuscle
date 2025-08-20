@@ -1,10 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 
 // Global Error Handler Middleware
-export  const errorHandler = (err: Error, req: Request, res: Response, next: NextFunction) => {
+export const errorHandler = (err: Error, req: Request, res: Response, next: NextFunction) => {
 
     // See the kind of errror we are getting
-    console.log("Error instanceof NotFoundError:", err instanceof NotFoundError);
+    // console.log("Error instanceof NotFoundError:", err instanceof NotFoundError);
     console.log("Error prototype:", Object.getPrototypeOf(err));
     console.log("Error.constructor.name:", err.constructor.name);
     console.log("Error keys:", Object.keys(err));
@@ -22,6 +22,7 @@ export  const errorHandler = (err: Error, req: Request, res: Response, next: Nex
     }
 
     // Unhandled errors
+    console.error(err);
     console.error(JSON.stringify(err, null, 2));
     return res.status(500).send({ errors: [{ message: 'Something went wrong' }]});
 }
@@ -47,13 +48,14 @@ abstract class CustomError extends Error {
     }
 }
 
+// Semantically invalid
 export class BadRequestError extends CustomError {
     private static readonly _statusCode = 400;
     private readonly _code: number;
     private readonly _logging: boolean;
     private readonly _context: { [key: string]: any };
 
-    constructor(params?: {code?: number, message?: string, logging?: boolean, context?: { [key: string]: any }}) {
+    constructor(params?: { code?: number, message?: string, logging?: boolean, context?: { [key: string]: any } }) {
         const { code, message, logging, context } = params || {};
 
         super(message || 'Bad Request');
@@ -109,4 +111,37 @@ export class NotFoundError extends CustomError {
         return this._logging;
     }
 
+}
+
+// Invalid auth or role access
+export class UnauthorizedError extends CustomError {
+    private readonly _statusCode = 401
+    private readonly _code: number;
+    private readonly _logging: boolean;
+    private readonly _context: { [key: string]: any };
+
+    constructor(params?: {code?: number, message?: string, logging?: boolean, context?: { [key: string]: any}}) {
+        const { code, message, logging, context } = params || {};
+
+        super(message || "Unauthorized Access");
+        this._code = code || this._statusCode;
+        this._logging = logging || false;
+        this._context = context || {};
+        
+        // This makes sure that this is an UnauthorizedError and not just error
+        // Important in JS ES5 and below
+        Object.setPrototypeOf(this, UnauthorizedError.prototype);
+    }
+
+    get errors() {
+        return [{ message: this.message, context: this._context }];
+    }
+
+    get statusCode() {
+        return this._code;
+    }
+
+    get logging() {
+        return this._logging;
+    }
 }
