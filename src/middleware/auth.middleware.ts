@@ -45,7 +45,7 @@
 import jwt from "jsonwebtoken";
 import * as dotenv from "dotenv";
 import { Request, Response, NextFunction } from "express";
-import { UnauthorizedError } from "./error.middleware";
+import { BadRequestError, UnauthorizedError } from "./error.middleware";
 import { redisClient } from "../configs/redis.connect";
 import { daysToSeconds } from "../utils/time.utils";
 import { Decoded } from "../utils/fnType.utils";
@@ -72,10 +72,24 @@ export const genAccessToken = (userId: string, role: string): string => {
     return accessToken;
 }
 
+export const decodeToken = (cookieData: string) => {
+    try {
+        let token: string;
+        token = cookieData.split("=")[1];
+
+        const decoded = jwt.decode(token) as DecodedPayload;
+        console.log("Decoded Val: ", decoded);
+
+        return decoded;
+    } catch (error) {
+        throw error;
+    }
+}
+
 export const verifyAccessToken = async (req: Request, res: Response, next: NextFunction) => {
     const cookieData = req.headers.cookie;
     console.log(cookieData);
-    
+
     let decoded;
     let token: string | undefined;
     try {
@@ -83,7 +97,9 @@ export const verifyAccessToken = async (req: Request, res: Response, next: NextF
             split method stores it into array and it becomes
             ["Bearer", "eyJhbG..."]
         */
-        token =  cookieData && cookieData.split('=')[1];
+
+        if (!cookieData) throw new UnauthorizedError({ code: 401, message: "Missing Token" });
+        token = cookieData.split('=')[1];
 
         // console.log({ token });
 
@@ -119,6 +135,7 @@ export const verifyAccessToken = async (req: Request, res: Response, next: NextF
         } else if (error instanceof JsonWebTokenError) {
             console.error("Web token error: ", error)
         }
+        next(error);
     }
 }
 
@@ -179,10 +196,14 @@ export const saveToken = async (userId: string, token: string) => {
     try {
         const ttl = daysToSeconds({ days: 7 });
 
+        console.log("Saving into redis");
         // prefix user: is a convention so it is easy to find values with keys
-        await redisClient.set(`user:${userId}`, token, {
+        // Redis set does not allow key duplicates it overwrites
+        const response = await redisClient.set(`user:${userId}`, token, {
             EX: ttl 
         });
+
+        console.log("Token saved:", response);
     } catch (error) {
         console.error('Failed to save the token:', error);
     }
@@ -199,5 +220,7 @@ export const getToken = async (userId: string) => {
 }
 
 export const destroyToken = async (userId: string) => {
-    await redisClient.del(`user:${userId}`);
+    const response = await redisClient.del(`user:${userId}`);
+    console.log("Response: ", response);
+    return;
 }
