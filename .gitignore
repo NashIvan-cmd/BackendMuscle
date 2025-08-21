@@ -17,3 +17,6 @@ build/
 # OS-specific
 .DS_Store
 Thumbs.db
+
+*.rest
+*.http

@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "ES6",                   // Good modern target
+    "target": "es2022",                   // Good modern target
     "module": "ESNext",                   // Let TS output native ESM
     "moduleResolution": "Node",           // Classic Node resolution
     "outDir": "./dist",                   // Compiled output folder

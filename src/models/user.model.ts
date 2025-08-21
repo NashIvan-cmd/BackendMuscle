@@ -9,7 +9,7 @@ export const UserSchema = new Schema({
     password: { type: String, required: true },
     role: {
       type: String,
-      enum: ["chef", "admin", "customer"],
+      enum: ["chef", "expeditor", "customer"],
       default: "customer"  
     },
     date: Date,

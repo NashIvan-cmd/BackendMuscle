@@ -1,10 +1,11 @@
 import { Router } from "express";
-import { setCreateAccProcessor, setLoginProcessor, loginFn } from "../controllers/auth.controller";
+import { registerFn, loginFn, logOutFn } from "../controllers/auth.controller";
 
 const router = Router();
 
-router.post('/user', setCreateAccProcessor);
+router.post('/users', registerFn);
 router.post('/log/user', loginFn);
+router.post('/logout', logOutFn);
 
 
 export default router

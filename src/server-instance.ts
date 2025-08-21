@@ -1,11 +1,11 @@
 import * as dotenv from "dotenv";
-import { connectDB } from "./configs/mongoose.config.ts";
-import { connectRedis } from "./configs/redis.connect.ts";
-import createApp from "./app";
+import { connectDB } from "./configs/mongoose.config.js";
+import { connectRedis } from "./configs/redis.connect.js";
+import createApp from "./app.js";
 
 dotenv.config();
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT ? Number(process.env.PORT) : 3000;
 
 // Creates one instance of server
 const startServer = async () => {

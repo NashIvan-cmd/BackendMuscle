@@ -3,30 +3,30 @@ import { ExpressHandle } from "../utils/fnType.utils";
 import { User } from "../models/user.model";
 import { responseHelper } from "../helper/response.helper";
 import { BadRequestError, NotFoundError, UnauthorizedError } from "../middleware/error.middleware";
-import { genAccessToken, genRefreshToken, saveToken } from "../middleware/auth.middleware";
+import { decodeToken, destroyToken, genAccessToken, genRefreshToken, saveToken } from "../middleware/auth.middleware";
 
 let registerExecutioner: ExpressHandle | null = null;
 let loginExecutioner: ExpressHandle | null = null;
 
 
-const registerFn = async (req: Request, res: Response, next: NextFunction) => {
+export const registerFn = async (req: Request, res: Response, next: NextFunction) => {
     const { username, password, role } = req.body;
     try {
     
-        if (!username || !password) {
-            throw new BadRequestError({code: 400, message: "Missing Username or Password", logging: false });
-        }
+        // if (!username || !password) {
+        //     throw new BadRequestError({code: 400, message: "Missing Username or Password", logging: false });
+        // }
 
-        // Simulteneously create and save a new user;
-        const user = await User.create({ 
-            username,
-            password,
-            role,
-            date: Date.now(),
-            session: Date.now()
-        });
+        // // Simulteneously create and save a new user;
+        // const user = await User.create({ 
+        //     username,
+        //     password,
+        //     role,
+        //     date: Date.now(),
+        //     session: Date.now()
+        // });
 
-        return responseHelper(res, 201, user, { keyName: "user" });
+        return responseHelper(res, 201, {user: "user"}, { keyName: "user" });
     } catch (error) {
         next(error);
     }
@@ -91,7 +91,21 @@ export const setLoginProcessor = () => {
     loginExecutioner = loginFn;
 }
 
-export const logOut = async (req: Request, res: Response, next: NextFunction) => {
-    
+export const logOutFn = async (req: Request, res: Response, next: NextFunction) => {
+    const cookieData = req.headers.cookie;
+    try {
+
+        if  (!cookieData) throw new Error("No cookie data");
+        const decoded = decodeToken(cookieData);
+
+        await destroyToken(decoded.userId);
+
+        // When clearing a cookie it should look exactly the same
+        // If path is ommited in setting cookie it is defaulted to "/"
+        res.clearCookie("authorization", { httpOnly: true, path: "/" });
+        return res.send("Successfuly logged out");
+    } catch (error) {
+        next(error);
+    }
 }
 
