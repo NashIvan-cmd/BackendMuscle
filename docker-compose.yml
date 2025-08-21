@@ -6,8 +6,9 @@ services:
     volumes: 
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro # Define the location of nginx configurations
     depends_on:
-      backend: 
-        condition: service_started # Wait for backend to start
+      - backend1  # Changed: now depends on all 3 backends
+      - backend2
+      - backend3
     restart: unless-stopped
     networks:
       - app-network # Connect to the same network as backend and redis
@@ -37,24 +38,24 @@ services:
       timeout: 10s     # Wait max 10 seconds for response
       retries: 3       # Try 3 times before marking as unhealthy
 
-  backend:
+  # First backend server
+  backend1:
     build: . # Build the directory given
     env_file:
       - .env # Load environment variables from .env file
     ports: # Define your backend ports
-      - "3000:3000"  # First 3000 Host Port: Second 3000 Container Port
-      - "3001:3001"  
-      - "3002:3002"
-      # We should also expose our mongoDB connection to let the docker connect
+      - "3001:3000"  # Host Port 3001 maps to Container Port 3000
     volumes:
       # - .:/app # Map entire project to /app in container
       - ./src:/app/src # Source code gets hot reloading
       - ./package.json:/app/package.json
       - ./nodemon.json:/app/nodemon.json
-      - /app/node_modules  # Exlucde node_modules (use container's version)
+      - /app/node_modules  # Exclude node_modules (use container's version)
       - /app/dist
     environment:
       - NODE_ENV=development
+      - PORT=3000  # Internal container port
+      - SERVER_ID=backend1  # Identify this specific server
       - MONGO_URI=${MONGO_URI} # Automatically read from .env file -> Same Directory
       # Redis connection details for backend
       - REDIS_HOST=redis  # Use service name, not localhost
@@ -68,10 +69,73 @@ services:
     networks:
       - app-network
 
+  # Second backend server
+  backend2:
+    build: . # Build the directory given
+    env_file:
+      - .env # Load environment variables from .env file
+    ports: # Define your backend ports
+      - "3002:3000"  # Host Port 3002 maps to Container Port 3000
+    volumes:
+      # - .:/app # Map entire project to /app in container
+      - ./src:/app/src # Source code gets hot reloading
+      - ./package.json:/app/package.json
+      - ./nodemon.json:/app/nodemon.json
+      - /app/node_modules  # Exclude node_modules (use container's version)
+      - /app/dist
+    environment:
+      - NODE_ENV=development
+      - PORT=3000  # Internal container port (same for all)
+      - SERVER_ID=backend2  # Identify this specific server
+      - MONGO_URI=${MONGO_URI} # Automatically read from .env file -> Same Directory
+      # Redis connection details for backend
+      - REDIS_HOST=redis  # Use service name, not localhost
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    # Make sure backend waits for Redis to be healthy before starting
+    depends_on:
+      redis:
+        condition: service_healthy
+    # Connect to the same network as Redis
+    networks:
+      - app-network
+
+  # Third backend server
+  backend3:
+    build: . # Build the directory given
+    env_file:
+      - .env # Load environment variables from .env file
+    ports: # Define your backend ports
+      - "3003:3000"  # Host Port 3003 maps to Container Port 3000
+    volumes:
+      # - .:/app # Map entire project to /app in container
+      - ./src:/app/src # Source code gets hot reloading
+      - ./package.json:/app/package.json
+      - ./nodemon.json:/app/nodemon.json
+      - /app/node_modules  # Exclude node_modules (use container's version)
+      - /app/dist
+    environment:
+      - NODE_ENV=development
+      - PORT=3000  # Internal container port (same for all)
+      - SERVER_ID=backend3  # Identify this specific server
+      - MONGO_URI=${MONGO_URI} # Automatically read from .env file -> Same Directory
+      # Redis connection details for backend
+      - REDIS_HOST=redis  # Use service name, not localhost
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    # Make sure backend waits for Redis to be healthy before starting
+    depends_on:
+      redis:
+        condition: service_healthy
+    # Connect to the same network as Redis
+    networks:
+      - app-network
 
 # Try if this persist error
 volumes:
   redis_data:
+    driver: local
+  mongodb_data:  # Added MongoDB volume
     driver: local
 
 networks:
